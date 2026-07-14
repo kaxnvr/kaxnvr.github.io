@@ -123,6 +123,19 @@
         window.addEventListener('resize', updProg);
         updProg();
       }
+
+      // rotation/resize: pager pages are viewport-width, but the browser keeps the
+      // old scrollLeft px — a rotate would strand the pager between two pages.
+      // Re-snap to the active slide once dims settle (iPadOS reports them late).
+      let snapTimer = 0;
+      window.addEventListener('resize', () => {
+        clearTimeout(snapTimer);
+        snapTimer = setTimeout(() => {
+          if (!pager.matches) return;                        // desktop: vertical stack
+          const i = Math.max(0, dotBtns.findIndex((b) => b.classList.contains('on')));
+          gallery.scrollTo({ left: slideEls[i].offsetLeft, behavior: 'instant' });
+        }, 120);
+      });
     })();
 
     /* ---- extras (fragrances only get the full treatment) ---- */

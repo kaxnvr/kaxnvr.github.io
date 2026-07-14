@@ -188,7 +188,31 @@
     requestAnimationFrame(open);
     window.addEventListener('load', open);
     nextBtn.addEventListener('click', () => { if (cardShown) show(cur + 1, true); });
-    window.addEventListener('resize', () => { show(cur, false); update(); });
+
+    /* ---- rotation / resize: PRESERVE the intro progress p ----
+       p = scrollY / (heroH − innerH), and heroH is 400vh — so a rotate keeps the
+       absolute scrollY but changes the mapping, dumping the user at a different
+       point of the animation (mid-dolly wall = the "broken layout" on iPad).
+       Fix: remember the last TRUSTED p (read while the viewport was stable),
+       remap scrollY to hold that p, re-centre the strip, and re-run again after
+       iPadOS settles its late post-rotate dimensions. */
+    let lastP = 0, lastW = innerWidth, lastH = innerHeight;   // updated in update()
+    function relayout(){
+      const max = Math.max(1, heroSection.offsetHeight - innerHeight);
+      if (lastP < 1) window.scrollTo(0, lastP * max);   // past the hero: leave scroll alone
+      lastW = innerWidth; lastH = innerHeight;          // new dims are now the trusted ones
+      show(cur, false);
+      update();
+    }
+    let rotateTimer = 0;
+    function onViewportChange(){
+      relayout();
+      requestAnimationFrame(relayout);                  // after the browser re-lays-out
+      clearTimeout(rotateTimer);
+      rotateTimer = setTimeout(relayout, 350);          // iPadOS reports late final dims
+    }
+    window.addEventListener('resize', onViewportChange);
+    window.addEventListener('orientationchange', onViewportChange);
 
     /* ---- drag / swipe (old behaviour, blocked until card is shown) ---- */
     let dragging = false, dragStartX = 0, dragStartTx = 0;
@@ -312,6 +336,11 @@
     function update(){
       const max = Math.max(1, heroSection.offsetHeight - innerHeight);
       const p = reduced ? 1 : Math.min(1, Math.max(0, scrollY / max));
+
+      /* only trust p as "where the user is" while the viewport is stable — the
+         readings that race in during a rotate (old scrollY / new max) must not
+         overwrite the progress that relayout() is about to restore */
+      if (innerWidth === lastW && innerHeight === lastH) lastP = p;
 
       /* frosted glass rides the rotation: fully covering at p=0, fully lifted
          (its own 145vh incl. the 45vh feather) exactly at SCRUB_END. Hidden once
