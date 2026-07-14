@@ -1,8 +1,8 @@
-# KAXNiOR — kaxn0101.github.io
+# KAXNiOR — kaxnvr.github.io
 
 Public site for **KAXNiOR**, a sensory fragrance house. Static site hosted on GitHub Pages.
 
-**Live:** https://kaxn0101.github.io/fragrance/
+**Live:** https://kaxnvr.github.io/fragrance/
 
 ## Structure
 - `fragrance/` — the site (all pages, styles, scripts, images, and the stone-intro frame sequence)
