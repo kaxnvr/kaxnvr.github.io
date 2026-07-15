@@ -193,26 +193,47 @@
        p = scrollY / (heroH − innerH), and heroH is 400vh — so a rotate keeps the
        absolute scrollY but changes the mapping, dumping the user at a different
        point of the animation (mid-dolly wall = the "broken layout" on iPad).
-       Fix: remember the last TRUSTED p (read while the viewport was stable),
-       remap scrollY to hold that p, re-centre the strip, and re-run again after
-       iPadOS settles its late post-rotate dimensions. */
-    let lastP = 0, lastW = innerWidth, lastH = innerHeight;   // updated in update()
+
+       iPadOS traps this must survive:
+       · Safari IGNORES programmatic window scrolls while the rotate animation runs
+         (~0.5s) — so a remap must be VERIFIED, and the new dims only adopted as
+         trusted once the scroll actually landed; otherwise the next scroll event
+         would adopt the WRONG p as truth and every retry would restore the bug.
+       · resize/orientationchange timing is unreliable (multiple, early, or late) —
+         so a polling watchdog converges regardless of which events fire when.
+       · toolbar show/hide breathes innerHeight by <150px while the user scrolls —
+         that must NOT trigger a remap (it would fight the user's scroll). */
+    let lastP = 0, lastW = innerWidth, lastH = innerHeight;   // trusted state (see update())
     function relayout(){
       const max = Math.max(1, heroSection.offsetHeight - innerHeight);
-      if (lastP < 1) window.scrollTo(0, lastP * max);   // past the hero: leave scroll alone
-      lastW = innerWidth; lastH = innerHeight;          // new dims are now the trusted ones
+      if (lastP < 1){
+        const target = Math.round(lastP * max);
+        window.scrollTo(0, target);
+        // adopt the new dims ONLY once the remap verifiably landed; if Safari ate
+        // the scroll (mid-rotation), dims stay untrusted and the watchdog retries
+        if (Math.abs((window.scrollY || document.scrollingElement.scrollTop) - target) < 3){
+          lastW = innerWidth; lastH = innerHeight;
+        }
+      } else { lastW = innerWidth; lastH = innerHeight; }  // past the hero: leave scroll alone
       show(cur, false);
       update();
     }
-    let rotateTimer = 0;
-    function onViewportChange(){
-      relayout();
-      requestAnimationFrame(relayout);                  // after the browser re-lays-out
-      clearTimeout(rotateTimer);
-      rotateTimer = setTimeout(relayout, 350);          // iPadOS reports late final dims
+    // ONE gate for events AND the watchdog — so the iOS toolbar resize EVENT gets
+    // the same "don't fight the user's scroll" threshold as the polling path:
+    // width change or big height change (rotation/split-screen) → full relayout,
+    // retried until the remap sticks; small height-only drift (toolbar) → adopt
+    // silently with NO scroll remap.
+    function checkViewport(){
+      if (innerWidth !== lastW || Math.abs(innerHeight - lastH) > 150) relayout();
+      else if (innerHeight !== lastH) lastH = innerHeight;
     }
-    window.addEventListener('resize', onViewportChange);
-    window.addEventListener('orientationchange', onViewportChange);
+    // events give the fastest response…
+    window.addEventListener('resize', checkViewport);
+    window.addEventListener('orientationchange', checkViewport);
+    if (screen.orientation && screen.orientation.addEventListener)
+      screen.orientation.addEventListener('change', checkViewport);
+    // …and the watchdog guarantees convergence even if no event fires usefully
+    setInterval(checkViewport, 120);
 
     /* ---- drag / swipe (old behaviour, blocked until card is shown) ---- */
     let dragging = false, dragStartX = 0, dragStartTx = 0;
