@@ -247,6 +247,14 @@ nav.scrolled .mega, nav.solid .mega {
 #hero-stone {
   position: absolute; left: 32.868%; top: 9.042%; width: 38.616%; height: 26.000%;
   pointer-events: none;
+  /* distortion-proof, same philosophy as the photos' object-fit:cover: the canvas
+     is a replaced element, so object-fit governs how its 692×624 bitmap maps into
+     the CSS box. contain = the drawing keeps its own aspect NO MATTER what shape
+     the box is — if a rotation quirk ever hands the panel a non-3:4 box, the stone
+     letterboxes instead of squashing. In the correct box the % geometry above is
+     within 0.45% of the bitmap ratio, so contain is visually identical to before. */
+  object-fit: contain;
+  aspect-ratio: 692 / 624;
 }
 /* Act-1 frosted glass: pure backdrop blur (no tint), 145vh tall so its bottom
    45vh mask feather sits BELOW the fold at p=0 — the viewport opens fully
@@ -447,8 +455,14 @@ nav.scrolled .mega, nav.solid .mega {
    impossible by construction: height always derives from the resolved width. */
 .sc-panel {
   flex: 0 0 auto; width: min(36vw, 72vh); aspect-ratio: 3 / 4; overflow: hidden; background: #efefef;
+  /* explicit height = 4/3 × the width formula (min is monotonic, so 4/3·min(a,b)
+     = min(4a/3, 4b/3) exactly). Belt-and-suspenders with aspect-ratio: both axes
+     are plain viewport literals the engine re-resolves atomically on rotation, so
+     the box is 3:4 even where an aspect-ratio/flex-stretch recompute quirk exists
+     (iPadOS rotation). Keep the two formulas in lockstep with #hero's --panel-w. */
+  height: min(48vw, 96vh);
 }
-@media (max-aspect-ratio: 3/4) { .sc-panel { width: min(96vw, 72vh); } }
+@media (max-aspect-ratio: 3/4) { .sc-panel { width: min(96vw, 72vh); height: min(128vw, 96vh); } }
 .sc-panel img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
 /* TAMBURINS-style card: title + Shop on the left, circular next arrow on the right.
