@@ -867,7 +867,13 @@ body.drawer-open { overflow: hidden; }
   .pdp-gallery {
     display: flex; align-items: flex-start; overflow-x: auto; scroll-snap-type: x mandatory;
     scrollbar-width: none; -webkit-overflow-scrolling: touch;
+    /* static (not relative) so .pdp-back's absolute containing block becomes .pdp-row —
+       OUTSIDE this scroller. Anchored out there the link stays pinned at the photo frame's
+       top-left while pages swipe underneath it (user-specced 2026-07-17); it still scrolls
+       away vertically with the page, same as the wide layout. */
+    position: static;
   }
+  .pdp-row { position: relative; }
   .pdp-gallery::-webkit-scrollbar { display: none; }
   .pdp-slide { flex: 0 0 100%; width: 100%; height: 72vh; scroll-snap-align: start; scroll-snap-stop: always; }
   /* the vertical hairline gap between stacked slides must not become a horizontal one —
