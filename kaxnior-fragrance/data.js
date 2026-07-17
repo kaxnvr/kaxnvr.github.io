@@ -154,7 +154,7 @@ PRODUCTS['discovery-set'] = {
 /* Cache-bust every product-image URL. The dev server (python http.server) sends no cache
    headers, so a re-exported photo keeps its filename and the browser shows the STALE cached
    copy. Bump IMG_V whenever any image in website/img/ is replaced, and all <img> refetch. */
-const IMG_V = '33';
+const IMG_V = '34';
 (function () {
   const v = (s) => (s && s.indexOf('.avif') > -1 && s.indexOf('?') < 0) ? s + '?v=' + IMG_V : s;
   FRAGRANCES.forEach((f) => { f.img = v(f.img); });
