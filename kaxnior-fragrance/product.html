@@ -187,7 +187,10 @@
         const i = pager.matches && gallery.clientWidth
           ? Math.min(slideEls.length - 1, Math.max(0, Math.round(gallery.scrollLeft / gallery.clientWidth)))
           : 0; // desktop: the link always sits on slide 1's corner
-        backEl.classList.toggle('on-dark', cornerLum(slideEls[i].querySelector('img')) < 150);
+        // threshold 195 = midpoint of the two ink luminances (grey #888 ≈ 136, white 255):
+        // below it white always contrasts harder — catches the room-fragrance mid-grey
+        // backdrop (corner ≈ 153) that a 150 cut-off left in invisible grey
+        backEl.classList.toggle('on-dark', cornerLum(slideEls[i].querySelector('img')) < 195);
       };
       gallery.addEventListener('scroll', () => {
         if (!tintQueued) { tintQueued = true; requestAnimationFrame(tint); }
