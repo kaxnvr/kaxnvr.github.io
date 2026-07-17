@@ -541,7 +541,11 @@ nav.scrolled .mega, nav.solid .mega {
 /* pager progress line — pager (≤1000px) only; desktop keeps the side dots */
 .pdp-progress { display: none; }
 
-.pdp-back { position: absolute; top: 22px; left: 22px; z-index: 5; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #888; text-decoration: none; }
+/* colour follows the photo: product.html samples the corner of the slide under the
+   link — dark photo → .on-dark (white), light photo → base grey. (mix-blend-mode
+   difference was tried first but mushes to mid-grey on the lip balms' slate backdrop.) */
+.pdp-back { position: absolute; top: 22px; left: 22px; z-index: 5; font-size: 10px; letter-spacing: 0.2em; text-transform: uppercase; color: #888; text-decoration: none; transition: color 0.25s; }
+.pdp-back.on-dark { color: #fff; }
 .pdp-info { position: sticky; top: 70px; height: calc(100vh - 70px); padding: 100px 80px; display: flex; flex-direction: column; gap: 22px; justify-content: center; }
 .pdp-cat { font-size: 10px; letter-spacing: 0.28em; text-transform: uppercase; color: var(--limestone); }
 .pdp-name { font-family: var(--font-serif); font-size: clamp(40px, 4.5vw, 70px); font-weight: 400; line-height: 1.05; }
@@ -952,6 +956,10 @@ body.drawer-open { overflow: hidden; }
   .footer-top { grid-template-columns: 1fr; }
   nav { padding: 18px 24px; }
   nav.scrolled, nav.solid { padding: 14px 24px; }
+  /* PDP flush under the nav: the phone nav (solid: 14px pad ×2 + 26px logo + 1px
+     border) is 55px tall, not the 70px the desktop padding assumes — without this
+     the photos floated 15px below the bar (user-specced flush 2026-07-17) */
+  .pdp { padding-top: 55px; }
   .page-intro { padding-top: 72px; padding-bottom: 70px; }
   /* phones get a fixed (not vw-scaled) panel width — 36vw of a 390px phone would be
      a tiny 140px photo. Overriding just this ONE variable is enough: the card, the

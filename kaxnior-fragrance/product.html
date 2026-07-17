@@ -7,10 +7,10 @@
   <meta name="description" content="A KAXNiOR fragrance — scent sealed in stone.">
   <link rel="icon" type="image/svg+xml" href="/kaxnior-fragrance/favicon.svg">
   <meta property="og:title" content="KAXNiOR">
-  <meta property="og:image" content="https://kaxnvr.github.io/kaxnior-fragrance/img/og.jpg?v=2">
+  <meta property="og:image" content="/kaxnior-fragrance/img/og.jpg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500&family=Playfair+Display:ital,wght@0,400;1,300&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/kaxnior-fragrance/style.css?v=102">
+  <link rel="stylesheet" href="/kaxnior-fragrance/style.css?v=103">
 </head>
 <body data-page="product">
   <div class="grain"></div>
@@ -34,13 +34,13 @@
     if (meta) meta.content = p.desc;
 
     /* ---- main row: vertical-scroll image gallery + side dots ---- */
-    const back = `<a class="pdp-back" href="/kaxnior-fragrance/index.html">← Home</a>`;
+    const back = `<a class="pdp-back" href="/kaxnior-fragrance/index.html">← Back</a>`;
     const isSet = id === 'discovery-set';
     const srcs = (p.gallery && p.gallery.length) ? p.gallery.slice() : (p.img ? [p.img] : []);
     const slides = srcs.map((src) => {
       const cover = p.fit === 'cover';
       const bg = cover ? `<div class="pdp-bg" style="background-image:url('${src}')"></div>` : '';
-      return `<div class="pdp-slide ${cover ? 'cover' : 'blend'}">${bg}<img src="${src}" alt="${p.name}" loading="eager"></div>`;
+      return `<div class="pdp-slide ${cover ? 'cover' : 'blend'}">${bg}<img src="${src}" alt="" loading="eager"></div>`;
     });
     // Box-design placeholder = last slide for products whose packaging isn't shown yet.
     // Skipped once a category's gallery already carries a real box/pouch shot.
@@ -80,6 +80,12 @@
         ${cta}
         ${parentLink}
       </div>`;
+
+    /* BACK returns to the previous page (history) — the href stays as the fallback
+       for direct entries (shared links, new tab) that have nothing to go back to */
+    document.querySelector('.pdp-back').addEventListener('click', (e) => {
+      if (history.length > 1) { e.preventDefault(); history.back(); }
+    });
 
     /* gallery dots: scroll-spy + click-to-scroll, shown only while gallery is in view */
     (function () {
@@ -137,6 +143,59 @@
         gallery.scrollTo({ left: slideEls[i].offsetLeft, behavior: 'instant' });
         if (Math.abs(gallery.scrollLeft - slideEls[i].offsetLeft) < 3) pagerW = innerWidth;
       }, 150);
+
+      // entry pin: WebKit re-snaps the mandatory pager to a later page while the
+      // big slide-1 master is still decoding (fragrances opened "on page 2", the
+      // box shot). Hold page 1 until the user actually touches the pager, re-pinning
+      // after each image finishes loading and on bfcache restores.
+      let touched = false;
+      const markTouched = () => { touched = true; };
+      ['touchstart', 'pointerdown', 'wheel'].forEach((t) =>
+        gallery.addEventListener(t, markTouched, { passive: true, once: true }));
+      const pin = () => {
+        if (!touched && pager.matches && gallery.scrollLeft > 0) gallery.scrollTo({ left: 0, behavior: 'instant' });
+      };
+      gallery.querySelectorAll('img').forEach((im) => {
+        if (!im.complete) im.addEventListener('load', () => requestAnimationFrame(pin));
+      });
+      window.addEventListener('pageshow', pin);
+      pin();
+
+      // BACK legibility: sample the corner of the photo actually under the link —
+      // dark corner → white link (.on-dark), light corner → the base grey. Same-origin
+      // AVIFs keep the canvas readable; luminance cached per image.
+      const backEl = document.querySelector('.pdp-back');
+      const lumCache = new Map();
+      const cornerLum = (img) => {
+        if (!img || !img.naturalWidth) return 255;
+        if (lumCache.has(img)) return lumCache.get(img);
+        let v = 255;
+        try {
+          const c = document.createElement('canvas'); c.width = 24; c.height = 12;
+          const x = c.getContext('2d', { willReadFrequently: true });
+          x.drawImage(img, 0, 0, img.naturalWidth * 0.28, img.naturalHeight * 0.14, 0, 0, 24, 12);
+          const d = x.getImageData(0, 0, 24, 12).data;
+          let s = 0;
+          for (let i = 0; i < d.length; i += 4) s += 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
+          v = s / (d.length / 4);
+        } catch (_) { /* tainted/failed decode: assume light */ }
+        lumCache.set(img, v); return v;
+      };
+      let tintQueued = false;
+      const tint = () => {
+        tintQueued = false;
+        const i = pager.matches && gallery.clientWidth
+          ? Math.min(slideEls.length - 1, Math.max(0, Math.round(gallery.scrollLeft / gallery.clientWidth)))
+          : 0; // desktop: the link always sits on slide 1's corner
+        backEl.classList.toggle('on-dark', cornerLum(slideEls[i].querySelector('img')) < 150);
+      };
+      gallery.addEventListener('scroll', () => {
+        if (!tintQueued) { tintQueued = true; requestAnimationFrame(tint); }
+      }, { passive: true });
+      gallery.querySelectorAll('img').forEach((im) => {
+        if (!im.complete) im.addEventListener('load', tint);
+      });
+      tint();
     })();
 
     /* ---- extras (fragrances only get the full treatment) ---- */
