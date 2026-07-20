@@ -406,7 +406,7 @@
     }
 
     /* ---------- scrub + hand-off ---------- */
-    let drawn = -1;
+    let drawn = -1, frostGone = false, introGone = false, cueState = null;
 
     function update(){
       const max = Math.max(1, HERO_H - innerHeight);
@@ -420,28 +420,44 @@
       /* frosted glass rides the rotation: fully covering at p=0, fully lifted
          (its own 145vh incl. the 45vh feather) exactly at SCRUB_END. Hidden once
          gone so the backdrop blur stops costing GPU; scrolling back re-shows it. */
-      /* frost lifts with the rotation, gone exactly at SCRUB_END */
+      /* frost lifts with the rotation, gone exactly at SCRUB_END. Once gone, skip
+         the writes entirely — during the LATER dolly phase p never revisits this
+         range, so without the guard this was 2 no-op style writes every single
+         coalesced scroll frame for the whole 0.42→0.72 dolly. */
       if (frost){
         const lift = reduced ? 1 : Math.min(1, p / SCRUB_END);
-        frost.style.transform = 'translate3d(0,' + (-lift * 104) + 'vh,0)';
-        frost.style.visibility = lift >= 1 ? 'hidden' : 'visible';
+        const goneNow = lift >= 1;
+        if (!goneNow || !frostGone){
+          frost.style.transform = 'translate3d(0,' + (-lift * 104) + 'vh,0)';
+          frost.style.visibility = goneNow ? 'hidden' : 'visible';
+        }
+        frostGone = goneNow;
       }
 
       /* title card: a quick, raw scroll-scrub dismiss over the FIRST 10% of the
-         scroll, gone long before the reveal is meaningfully under way */
+         scroll, gone long before the reveal is meaningfully under way. Same
+         no-op-write guard as frost above once fully dismissed. */
       if (introEl){
         const gone = reduced ? 1 : Math.min(1, p / 0.10);
-        introEl.style.opacity = String(1 - gone);
-        introEl.style.transform = 'translateY(' + (-gone * 22) + 'px)';
-        introEl.style.visibility = gone >= 1 ? 'hidden' : 'visible';
-        introEl.style.pointerEvents = gone > 0.02 ? 'none' : 'auto';
+        const goneNow = gone >= 1;
+        if (!goneNow || !introGone){
+          introEl.style.opacity = String(1 - gone);
+          introEl.style.transform = 'translateY(' + (-gone * 22) + 'px)';
+          introEl.style.visibility = goneNow ? 'hidden' : 'visible';
+          introEl.style.pointerEvents = gone > 0.02 ? 'none' : 'auto';
+        }
+        introGone = goneNow;
       }
 
-      /* scroll cue: visible through the whole title phase */
+      /* scroll cue: visible through the whole title phase; only two states, so
+         only write on an actual transition instead of every frame. */
       if (scrollWrap){
         const cueOn = p < 0.22 && ready;
-        scrollWrap.style.opacity = cueOn ? 1 : 0;
-        scrollWrap.style.pointerEvents = cueOn ? 'auto' : 'none';
+        if (cueOn !== cueState){
+          scrollWrap.style.opacity = cueOn ? 1 : 0;
+          scrollWrap.style.pointerEvents = cueOn ? 'auto' : 'none';
+          cueState = cueOn;
+        }
       }
 
       const want = Math.round(Math.min(1, p / SCRUB_END) * (FRAMES - 1));
