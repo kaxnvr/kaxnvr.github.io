@@ -406,7 +406,7 @@
     }
 
     /* ---------- scrub + hand-off ---------- */
-    let drawn = -1, frostGone = false, introGone = false, cueState = null, trimmed = false;
+    let drawn = -1, frostGone = false, introGone = false, cueState = null;
 
     function update(){
       const max = Math.max(1, HERO_H - innerHeight);
@@ -491,21 +491,6 @@
       if (card && cardOn !== cardShown){
         cardShown = cardOn;
         card.classList.toggle('on', cardOn);
-      }
-
-      /* EXPERIMENTAL — trim the composited layer during the dolly (revert by
-         deleting this block + the `trimmed` var if it doesn't help / looks off):
-         #hero-cam scales the WHOLE 6-panel strip (~2.2x the viewport width) as
-         one layer, but while the camera is zoomed into panel 1 the other 5 are
-         already fully off-screen — visibility:hidden (no reflow) drops them from
-         paint/composite, so the GPU only has ~1 panel's worth of pixels to scale
-         instead of the whole strip. Un-hide the instant the card can be
-         interacted with (matches cardShown, not isEnd — arrow/drag go live at
-         CARD_ON, before landing) so drag/arrow never touch a hidden panel. */
-      const wantTrim = !cardShown;
-      if (wantTrim !== trimmed){
-        panels.forEach((pn, i) => { if (i !== 1) pn.style.visibility = wantTrim ? 'hidden' : ''; });
-        trimmed = wantTrim;
       }
 
     }
