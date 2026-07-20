@@ -972,3 +972,14 @@ body.drawer-open { overflow: hidden; }
      than the viewport. The aspect-gated rules at the top of the hero section
      (min(36vw,72vh) / portrait min(96vw,72vh)) already cover phones correctly. */
 }
+
+/* deterrent only, not real protection: a determined visitor can always screenshot.
+   -webkit-touch-callout kills iOS Safari's long-press "Save Image" sheet; the rest
+   stops drag-to-desktop and the desktop right-click menu from reaching <img>. */
+img, picture, canvas {
+  -webkit-touch-callout: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-user-drag: none;
+  user-drag: none;
+}

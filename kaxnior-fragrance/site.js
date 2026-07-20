@@ -6,6 +6,16 @@
 (function () {
   const PAGE = document.body.dataset.page || '';
 
+  /* ---------- deterrent only: block right-click "Save Image As" on photos.
+     CSS handles the iOS long-press sheet; this covers desktop's context menu,
+     which CSS pointer-events:none doesn't reach once the event already fired. */
+  document.addEventListener('contextmenu', (e) => {
+    if (e.target.closest('img, picture, canvas')) e.preventDefault();
+  });
+  document.addEventListener('dragstart', (e) => {
+    if (e.target.closest('img, picture, canvas')) e.preventDefault();
+  });
+
   /* ---------- SEO: Organization structured data (every page) ---------- */
   (function () {
     const ld = document.createElement('script');
