@@ -391,7 +391,19 @@
       const bottomY = shelfTop + LABEL_Y * ph;              // crop bottom = above logo
       const FILL = VW > VH ? 0.26 : 0.46;                   // stone = this frac of viewport width
       const w0 = sw / FILL, h0 = w0 * VH / VW;
-      camStart = { cx: VW / 2, cy: bottomY - h0 / 2, w: w0 };
+      // cx must follow the stone's ACTUAL rest position, NOT an assumed VW/2. At
+      // wide-short aspects panel-w drops below vw/3, so clampTx can't pull the strip
+      // far enough to centre panel 1 (that would reveal wall left of panel 0) — the
+      // strip stays left and the stone with it. Zooming the crop at VW/2 then framed
+      // empty wall where the stone should be, shunting the close-up off to the left
+      // (the bug). Compute where the stone truly sits: the centre-panel-1 tx clamped
+      // exactly as setTrack does, plus the canvas's own offset inside the panel. On
+      // normal aspects the clamp is a no-op so this stays ~VW/2 (drift < 0.02·panelW);
+      // endRect stays identity, so the dolly now pans a few px from stone-centre to
+      // the natural framing instead of revealing the mis-frame all at once. */
+      const clampedTx = clampTx(VW / 2 - (panels[1].offsetLeft + pw / 2));
+      const stoneCamX = panels[1].offsetLeft + cv.offsetLeft + cv.offsetWidth / 2 + clampedTx;
+      camStart = { cx: stoneCamX, cy: bottomY - h0 / 2, w: w0 };
       // the dolly's destination IS the strip's normal presentation: identity
       camEnd = { cx: VW / 2, cy: VH / 2, w: VW };
     }
