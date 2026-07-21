@@ -185,22 +185,22 @@ nav.scrolled .mega, nav.solid .mega {
      edges symmetrically — accepted trade-off. 400vh driver: rotate+dolly finish
      at p=0.72, then a ~0.28 landed DWELL holds the strip before the page
      scrolls on to the footer. */
-  /* CAPPED at 75vh so the whole photo always fits on screen with NO crop: 75vh ×
-     4/3 (the 3:4 panel) = exactly 100vh, so at wide-short viewports the photo fills
-     the full viewport height and scales DOWN with the window instead of ever
-     clipping top/bottom (user-specced 2026-07-21: "enlarge, don't crop"). Raised
-     from the old 72vh (which left a 4vh wall band and capped the photo smaller) —
-     75vh both enlarges the photo to full height AND keeps panel-w ≥ vw/3 up to
-     aspect ≈2.25 (was ≈2.17), so panel 1 CENTRES within clampTx across a wider
-     range. Beyond ~2.25:1 (very wide split-screen) the height cap wins so the photo
-     stays uncropped and full-size, and the product sits as centred as no-crop
-     permits. The nav overlaps only the photo's top ~22% feathered wall (featureless);
-     stone/bottle/table always stay visible. */
-  --panel-w: min(36vw, 75vh);
+  /* panel-w = min(36vw, 75vh) is the RESTING size (36vw design proportion, capped
+     so the 3:4 photo fits full height: 75vh×4/3 = 100vh). But it is FLOORED at
+     100vw/3 (= vw/3): with a product centred, the single end panel beside it (panel
+     0 or 5) fills the outer half of the viewport ONLY when panel-w ≥ vw/3 — below
+     that a blank studio-wall gap opens at the side (user rejected 2026-07-21: "no
+     blank space, enlarge the photo"). Flooring at vw/3 enlarges the photo just
+     enough to close that gap; past aspect ≈2.25 the floor exceeds 75vh so the photo
+     grows taller than the viewport and its TOP wall margin crops (product itself,
+     lower in frame, stays visible up to ≈3:1). So: normal windows unchanged (36vw),
+     ≤2.25 full-height no-crop, >2.25 photo enlarges to fill (top wall margin trims).
+     max(a,min(b,c)) scales 4/3 to the .sc-panel height formula termwise. */
+  --panel-w: max(calc(100vw / 3), min(36vw, 75vh));
   position: relative; height: 400vh; width: 100%;
 }
 /* portrait / narrow: 36vw is too small — grow to (almost) viewport width */
-@media (max-aspect-ratio: 3/4) { #hero { --panel-w: min(96vw, 75vh); } }
+@media (max-aspect-ratio: 3/4) { #hero { --panel-w: max(calc(100vw / 3), min(96vw, 75vh)); } }
 #hero-stage {
   position: sticky; top: 0; height: 100vh; width: 100%; overflow: hidden;
   background: #f1f2f1;   /* fallback; #hero-cam covers it */
@@ -225,6 +225,16 @@ nav.scrolled .mega, nav.solid .mega {
   bottom: 0;
   /* height:auto — derives from the panels' own aspect-ratio boxes, so the shelf can
      never disagree with the photo geometry (one resolved layout chain, rotation-safe) */
+}
+/* Wide-short (≥9:4): here --panel-w is floored at vw/3 to close the side gap, which
+   makes the photo TALLER than the viewport. Bottom-flush would then clip the photo's
+   TOP — exactly where the stone stopper sits — hiding the signature element. Flip to
+   TOP-flush in this range so the overflow crops the BOTTOM instead (table front +
+   reflection, expendable); stone and bottle stay fully in frame. Only active where
+   the floor causes overflow (aspect ≥ 2.25); below that the photo fits and stays
+   bottom-flush (wall band above, the resting look). */
+@media (min-aspect-ratio: 9/4) {
+  #hero-shelf { bottom: auto; top: 0; }
 }
 /* panels butt together (gap:0). At fractional --panel-w the flex widths land on
    sub-pixel bounds → a hairline of background shows between panels (the "white
@@ -458,16 +468,17 @@ nav.scrolled .mega, nav.solid .mega {
    still scales off the var). aspect-ratio + object-fit:cover make distortion
    impossible by construction: height always derives from the resolved width. */
 .sc-panel {
-  flex: 0 0 auto; width: min(36vw, 75vh); aspect-ratio: 3 / 4; overflow: hidden; background: #efefef;
-  /* explicit height = 4/3 × the width formula (min is monotonic, so 4/3·min(a,b)
-     = min(4a/3, 4b/3) exactly). Belt-and-suspenders with aspect-ratio: both axes
-     are plain viewport literals the engine re-resolves atomically on rotation, so
-     the box is 3:4 even where an aspect-ratio/flex-stretch recompute quirk exists
-     (iPadOS rotation). Keep the two formulas in lockstep with #hero's --panel-w
-     (75vh cap → 100vh height = full viewport, no crop). */
-  height: min(48vw, 100vh);
+  flex: 0 0 auto; width: max(calc(100vw / 3), min(36vw, 75vh)); aspect-ratio: 3 / 4; overflow: hidden; background: #efefef;
+  /* explicit height = 4/3 × the width formula. max/min are monotone under a positive
+     scale, so 4/3·max(a,min(b,c)) = max(4a/3, min(4b/3, 4c/3)) exactly:
+       4/3·(100vw/3)=400vw/9,  4/3·36vw=48vw,  4/3·75vh=100vh.
+     Belt-and-suspenders with aspect-ratio: both axes are plain viewport literals the
+     engine re-resolves atomically on rotation, so the box is 3:4 even where an
+     aspect-ratio/flex-stretch recompute quirk exists (iPadOS rotation). Keep the two
+     formulas in lockstep with #hero's --panel-w (floored at vw/3 → no side gap). */
+  height: max(calc(400vw / 9), min(48vw, 100vh));
 }
-@media (max-aspect-ratio: 3/4) { .sc-panel { width: min(96vw, 75vh); height: min(128vw, 100vh); } }
+@media (max-aspect-ratio: 3/4) { .sc-panel { width: max(calc(100vw / 3), min(96vw, 75vh)); height: max(calc(400vw / 9), min(128vw, 100vh)); } }
 .sc-panel img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
 /* TAMBURINS-style card: title + Shop on the left, circular next arrow on the right.
