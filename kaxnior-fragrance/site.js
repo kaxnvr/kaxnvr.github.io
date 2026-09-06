@@ -148,13 +148,13 @@
         <li><a href="/kaxnior-fragrance/store.html">Stores</a></li>
       </ul></div>
       <div class="footer-col"><h4>Connect</h4><ul>
-        <li><a href="https://www.instagram.com/kaxnior-fragrance/" target="_blank" rel="noopener">Instagram</a></li>
+        <li><a href="https://www.instagram.com/kaxnior/?utm_source=ig_web_button_share_sheet" target="_blank" rel="noopener">Instagram</a></li>
         <li><a href="https://x.com/KAXNiOR" target="_blank" rel="noopener">X</a></li>
       </ul></div>
     </div>
     <div class="footer-bottom">
       <span class="footer-copy">© 2026 KAXNiOR. All rights reserved.</span>
-      <span class="footer-copy">Seoul · Portfolio Concept</span>
+      <span class="footer-copy">Seoul · Portfolio by @kaxnvr</span>
     </div>`;
   const footEl = document.getElementById('site-footer');
   if (footEl) footEl.innerHTML = footerInner;
