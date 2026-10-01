@@ -516,12 +516,12 @@ nav.scrolled .mega, nav.solid .mega {
    browser focus outline stacking on the border). User-specced 2026-07-14. */
 .sc-next {
   flex: 0 0 auto; width: calc(var(--panel-w) * 0.0753); height: calc(var(--panel-w) * 0.0753); border-radius: 50%;
-  border: 1px solid var(--paper); background: none; cursor: pointer;
+  border: 0.5px solid var(--paper); background: none; cursor: pointer;
   display: flex; align-items: center; justify-content: center; color: var(--paper);
 }
 .sc-next:hover { background: none; color: var(--paper); border-color: var(--paper); }
 .sc-next:focus { outline: none; }
-.sc-next:focus-visible { outline: none; border-width: 2px; } /* keyboard cue stays a SINGLE ring */
+.sc-next:focus-visible { outline: none; border-width: 1px; } /* keyboard cue stays a SINGLE ring */
 .sc-next svg { width: 45%; height: 45%; display: block; }
 
 /* ── PRODUCT DETAIL PAGE (PDP) ── */
@@ -998,4 +998,29 @@ img, picture, canvas {
   user-select: none;
   -webkit-user-drag: none;
   user-drag: none;
+}
+
+/* Real sequence readiness, intentionally non-blocking. The collection, navigation
+   and scrolling stay available on slow/failed connections. */
+.hero-loading {
+  position: absolute; z-index: 5; left: 5vw; bottom: 5vh;
+  display: grid; gap: 9px; width: 156px; color: var(--limestone-2);
+  font: 300 9px/1.5 var(--font-sans); letter-spacing: .14em; text-transform: uppercase;
+}
+.hero-loading[hidden] { display: none; }
+.hero-loading progress {
+  appearance: none; width: 100%; height: 1px; border: 0;
+  background: rgba(80,80,80,.15); color: #777;
+}
+.hero-loading progress::-webkit-progress-bar { background: rgba(80,80,80,.15); }
+.hero-loading progress::-webkit-progress-value { background: #777; }
+.hero-loading progress::-moz-progress-bar { background: #777; }
+.hero-loading button {
+  justify-self: start; border: 0; padding: 2px 0; background: none;
+  color: inherit; font: inherit; letter-spacing: inherit; text-transform: inherit;
+  border-bottom: 1px solid rgba(80,80,80,.3); cursor: pointer;
+}
+@media (prefers-reduced-motion: reduce) {
+  .showcase-track, .sc-card { transition: none !important; }
+  #hero-cam { will-change: auto; }
 }

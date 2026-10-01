@@ -43,13 +43,14 @@
   window.KX_THUMB = thumbSrc;
   function megaCard(id) {
     const p = PRODUCTS[id];
-    // Eager (not lazy): mega thumbs live in a visibility:hidden panel, where native
-    // lazy-loading won't fire on hover. They're small (~75KB) and cached across pages.
+    // Hidden mega menus do not compete with the hero for network/decode time.
+    // Activate src explicitly on pointer or keyboard entry (native lazy loading
+    // alone is unreliable inside visibility:hidden menus).
     let thumb;
     if (p && p.img) {
       const cls = p.fit === 'cover' ? 'cover' : 'lit';
       const bg = MEGA_THUMB_BG[id] ? ` ${MEGA_THUMB_BG[id]}` : '';
-      thumb = `<div class="mega-thumb ${cls}${bg}"><img src="${thumbSrc(p.img)}" alt="${p.name}" decoding="async"></div>`;
+      thumb = `<div class="mega-thumb ${cls}${bg}"><img data-src="${thumbSrc(p.img)}" alt="${p.name}" decoding="async"></div>`;
     } else {
       thumb = `<div class="mega-thumb ph"><div class="ph-icon">+</div><span class="ph-label">Visual Pending</span></div>`;
     }
@@ -172,7 +173,20 @@
   // Mega-menu: JS hover with grace period so the cursor can slide nav → cards.
   document.querySelectorAll('.has-menu').forEach((li) => {
     let t;
-    li.addEventListener('mouseenter', () => { clearTimeout(t); li.classList.add('is-open'); });
+    const open = () => {
+      clearTimeout(t);
+      li.querySelectorAll('img[data-src]').forEach(img => {
+        img.src = img.dataset.src;
+        delete img.dataset.src;
+      });
+      li.classList.add('is-open');
+    };
+    li.addEventListener('mouseenter', open);
+    li.addEventListener('focusin', open);
+    li.addEventListener('focusout', e => {
+      if (!li.contains(e.relatedTarget)) li.classList.remove('is-open');
+    });
+    li.addEventListener('keydown', e => { if (e.key === 'Escape') { clearTimeout(t); li.classList.remove('is-open'); } });
     li.addEventListener('mouseleave', () => { t = setTimeout(() => li.classList.remove('is-open'), 160); });
   });
 
