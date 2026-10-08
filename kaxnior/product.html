@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KAXNiOR — Product</title>
+  <meta name="description" content="A KAXNiOR fragrance — scent sealed in stone.">
+  <link rel="icon" type="image/svg+xml" href="/kaxnior/favicon.svg">
+  <meta property="og:title" content="KAXNiOR">
+  <meta property="og:image" content="/kaxnior/img/og.jpg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500&family=Playfair+Display:ital,wght@0,400;1,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/kaxnior/style.css?v=104">
+</head>
+<body data-page="product">
+  <div class="grain"></div>
+
+  <nav id="site-nav" class="solid" data-nav="solid"></nav>
+
+  <main class="pdp">
+    <div class="pdp-row" id="pdp"></div>
+    <div id="pdp-extra"></div>
+  </main>
+
+  <footer id="site-footer"></footer>
+
+  <script src="/kaxnior/data.js?v=36"></script>
+  <script src="/kaxnior/site.js?v=41"></script>
+  <script>
+    const id = new URLSearchParams(location.search).get('id') || 'dusk-isle';
+    const p = PRODUCTS[id] || PRODUCTS['dusk-isle'];
+    document.title = 'KAXNiOR — ' + p.name + (p.cat !== 'Fragrance' ? ' ' + p.cat : '');
+    const meta = document.querySelector('meta[name="description"]');
+    if (meta) meta.content = p.desc;
+
+    /* ---- main row: vertical-scroll image gallery + side dots ---- */
+    const back = `<a class="pdp-back" href="/kaxnior/index.html">← Back</a>`;
+    const isSet = id === 'discovery-set';
+    const srcs = (p.gallery && p.gallery.length) ? p.gallery.slice() : (p.img ? [p.img] : []);
+    const slides = srcs.map((src) => {
+      const cover = p.fit === 'cover';
+      const bg = cover ? `<div class="pdp-bg" style="background-image:url('${src}')"></div>` : '';
+      return `<div class="pdp-slide ${cover ? 'cover' : 'blend'}">${bg}<img src="${src}" alt="" loading="eager"></div>`;
+    });
+    // Box-design placeholder = last slide for products whose packaging isn't shown yet.
+    // Skipped once a category's gallery already carries a real box/pouch shot.
+    if (p.img && !isSet && !p.soon && !(p.gallery && p.gallery.length > 1)) {
+      slides.push(`<div class="pdp-slide box"><div class="ph-mark"><div class="ring">+</div><span class="ph-label">Box Design</span><em>Visual Pending</em></div></div>`);
+    }
+    if (!slides.length) {
+      slides.push(`<div class="pdp-slide box"><div class="ph-mark"><div class="ring">+</div><span class="ph-label">Visual Pending</span></div></div>`);
+    }
+    const dots = slides.length > 1
+      ? `<div class="pdp-dots" id="pdp-dots">${slides.map((_, i) => `<button data-i="${i}" class="${i === 0 ? 'on' : ''}" aria-label="Image ${i + 1}"></button>`).join('')}</div>`
+      : '';
+    // pager progress line (≤1000px replaces the dots): thin grey track flush under the
+    // photos, thumb width = one page's share, driven by the gallery's scrollLeft
+    const progress = slides.length > 1
+      ? `<div class="pdp-progress" id="pdp-progress" aria-hidden="true"><i></i></div>`
+      : '';
+    const vis = `<div class="pdp-gallery" id="pdp-gallery">${back}${dots}${slides.join('')}</div>${progress}`;
+    const cta = p.soon
+      ? `<span class="pdp-cta soon">Coming Soon</span>`
+      : `<button class="pdp-cta" data-add="${id}">Add to Bag</button>`;
+    const parentLink = p.parent
+      ? `<a class="btn-line" style="margin-top:8px;" href="/kaxnior/product.html?id=${p.parent}">From the ${PRODUCTS[p.parent].name} fragrance →</a>`
+      : '';
+
+    document.getElementById('pdp').innerHTML = vis + `
+      <div class="pdp-info">
+        <span class="pdp-cat">${p.cat}</span>
+        <h1 class="pdp-name">${p.name}</h1>
+        <span class="pdp-sub">${p.sub}</span>
+        <div class="pdp-divider"></div>
+        <div class="pdp-notes">${p.accord.map((n) => `<span>${n}</span>`).join('')}</div>
+        <p class="pdp-desc">${p.desc}</p>
+        <span class="pdp-vol">${p.vol}</span>
+        <span class="pdp-price">${money(p.price)}</span>
+        <span class="pdp-box">+ Sculptural Box · in development</span>
+        ${cta}
+        ${parentLink}
+      </div>`;
+
+    /* BACK returns to the previous page (history) — the href stays as the fallback
+       for direct entries (shared links, new tab) that have nothing to go back to */
+    document.querySelector('.pdp-back').addEventListener('click', (e) => {
+      if (history.length > 1) { e.preventDefault(); history.back(); }
+    });
+
+    /* gallery dots: scroll-spy + click-to-scroll, shown only while gallery is in view */
+    (function () {
+      const dotsEl = document.getElementById('pdp-dots');
+      const gallery = document.getElementById('pdp-gallery');
+      if (!dotsEl || !gallery) return;
+      const slideEls = [...gallery.querySelectorAll('.pdp-slide')];
+      const dotBtns = [...dotsEl.querySelectorAll('button')];
+      // ≤1000px the gallery is a horizontal pager — centre the slide on the x axis without
+      // moving the page vertically; desktop keeps the vertical centring
+      const pager = matchMedia('(max-width: 1000px)');
+      dotBtns.forEach((b, i) => b.addEventListener('click', () => slideEls[i].scrollIntoView(
+        pager.matches ? { behavior: 'smooth', block: 'nearest', inline: 'center' }
+                      : { behavior: 'smooth', block: 'center' })));
+      const spy = new IntersectionObserver((es) => {
+        es.forEach((e) => {
+          if (e.isIntersecting) {
+            const i = slideEls.indexOf(e.target);
+            dotBtns.forEach((b) => b.classList.remove('on'));
+            if (dotBtns[i]) dotBtns[i].classList.add('on');
+          }
+        });
+      }, { threshold: 0.55 });
+      slideEls.forEach((s) => spy.observe(s));
+      // reveal the dots only while the gallery occupies the viewport
+      const vis = new IntersectionObserver((es) => es.forEach((e) => dotsEl.classList.toggle('show', e.isIntersecting)), { threshold: 0.05 });
+      vis.observe(gallery);
+
+      // pager progress line: thumb = one page's share of the track, slides with scrollLeft
+      const track = document.getElementById('pdp-progress');
+      if (track) {
+        const bar = track.firstElementChild;
+        const updProg = () => {
+          if (!track.clientWidth) return;                    // desktop: display:none
+          const max = gallery.scrollWidth - gallery.clientWidth;
+          const w = track.clientWidth * (gallery.clientWidth / gallery.scrollWidth);
+          bar.style.width = w + 'px';
+          bar.style.transform = 'translateX(' + ((max > 0 ? gallery.scrollLeft / max : 0) * (track.clientWidth - w)) + 'px)';
+        };
+        gallery.addEventListener('scroll', updProg, { passive: true });
+        window.addEventListener('resize', updProg);
+        updProg();
+      }
+
+      // rotation/resize: pager pages are viewport-width, but the browser keeps the
+      // old scrollLeft px — a rotate would strand the pager between two pages.
+      // Verify-driven watchdog (not resize events): iPadOS ignores programmatic
+      // scrolls mid-rotation and mis-times resize, so keep re-snapping until the
+      // scroll verifiably lands at the active page, then adopt the new width.
+      let pagerW = innerWidth;
+      setInterval(() => {
+        if (innerWidth === pagerW) return;
+        if (!pager.matches) { pagerW = innerWidth; return; } // desktop: vertical stack
+        const i = Math.max(0, dotBtns.findIndex((b) => b.classList.contains('on')));
+        gallery.scrollTo({ left: slideEls[i].offsetLeft, behavior: 'instant' });
+        if (Math.abs(gallery.scrollLeft - slideEls[i].offsetLeft) < 3) pagerW = innerWidth;
+      }, 150);
+
+      // entry pin: WebKit re-snaps the mandatory pager to a later page while the
+      // big slide-1 master is still decoding (fragrances opened "on page 2", the
+      // box shot). Hold page 1 until the user actually touches the pager, re-pinning
+      // after each image finishes loading and on bfcache restores.
+      let touched = false;
+      const markTouched = () => { touched = true; };
+      ['touchstart', 'pointerdown', 'wheel'].forEach((t) =>
+        gallery.addEventListener(t, markTouched, { passive: true, once: true }));
+      const pin = () => {
+        if (!touched && pager.matches && gallery.scrollLeft > 0) gallery.scrollTo({ left: 0, behavior: 'instant' });
+      };
+      gallery.querySelectorAll('img').forEach((im) => {
+        if (!im.complete) im.addEventListener('load', () => requestAnimationFrame(pin));
+      });
+      window.addEventListener('pageshow', pin);
+      pin();
+
+      // BACK legibility: sample the corner of the photo actually under the link —
+      // dark corner → white link (.on-dark), light corner → the base grey. Same-origin
+      // AVIFs keep the canvas readable; luminance cached per image.
+      const backEl = document.querySelector('.pdp-back');
+      const lumCache = new Map();
+      const cornerLum = (img) => {
+        if (!img || !img.naturalWidth) return 255;
+        if (lumCache.has(img)) return lumCache.get(img);
+        let v = 255;
+        try {
+          const c = document.createElement('canvas'); c.width = 24; c.height = 12;
+          const x = c.getContext('2d', { willReadFrequently: true });
+          x.drawImage(img, 0, 0, img.naturalWidth * 0.28, img.naturalHeight * 0.14, 0, 0, 24, 12);
+          const d = x.getImageData(0, 0, 24, 12).data;
+          let s = 0;
+          for (let i = 0; i < d.length; i += 4) s += 0.2126 * d[i] + 0.7152 * d[i + 1] + 0.0722 * d[i + 2];
+          v = s / (d.length / 4);
+        } catch (_) { /* tainted/failed decode: assume light */ }
+        lumCache.set(img, v); return v;
+      };
+      let tintQueued = false;
+      const tint = () => {
+        tintQueued = false;
+        const i = pager.matches && gallery.clientWidth
+          ? Math.min(slideEls.length - 1, Math.max(0, Math.round(gallery.scrollLeft / gallery.clientWidth)))
+          : 0; // desktop: the link always sits on slide 1's corner
+        // threshold 195 = midpoint of the two ink luminances (grey #888 ≈ 136, white 255):
+        // below it white always contrasts harder — catches the room-fragrance mid-grey
+        // backdrop (corner ≈ 153) that a 150 cut-off left in invisible grey
+        backEl.classList.toggle('on-dark', cornerLum(slideEls[i].querySelector('img')) < 195);
+      };
+      gallery.addEventListener('scroll', () => {
+        if (!tintQueued) { tintQueued = true; requestAnimationFrame(tint); }
+      }, { passive: true });
+      gallery.querySelectorAll('img').forEach((im) => {
+        if (!im.complete) im.addEventListener('load', tint);
+      });
+      tint();
+    })();
+
+    /* ---- extras (fragrances only get the full treatment) ---- */
+    const hasPyramid = p.notes && p.notes.heart && p.notes.heart.length;
+    let extra = '';
+
+    if (hasPyramid) {
+      extra += `
+        <section class="pdp-extra pdp-pyramid">
+          <div class="tier reveal"><div class="t-label">Top</div><div class="t-note">${p.notes.top.join('<br>')}</div></div>
+          <div class="tier reveal" data-d="1"><div class="t-label">Heart</div><div class="t-note">${p.notes.heart.join('<br>')}</div></div>
+          <div class="tier reveal" data-d="2"><div class="t-label">Base</div><div class="t-note">${p.notes.base.join('<br>')}</div></div>
+        </section>`;
+    }
+
+    if (p.stone) {
+      extra += `
+        <section class="pdp-extra pdp-stone">
+          <div class="ps-text reveal">
+            <p class="eyebrow">The Stone</p>
+            <h2 class="display display-l">${p.stone}</h2>
+            <p class="body-text">${p.story || p.desc}</p>
+            <span class="stone-meta">Hand-selected · no two alike</span>
+          </div>
+        </section>`;
+    }
+
+    /* related fragrances (always show the other three) */
+    const related = FRAGRANCES.filter((f) => f.id !== id && f.id !== p.parent).slice(0, 3);
+    extra += `
+      <section class="pdp-extra pdp-related">
+        <p class="eyebrow reveal" style="margin-bottom:14px;">Continue</p>
+        <h2 class="display display-m reveal" data-d="1">More from the house</h2>
+        <div class="rel-row">
+          ${related.map((f, i) => `
+            <a class="mega-card reveal" data-d="${i + 1}" style="width:200px;" href="/kaxnior/product.html?id=${f.id}">
+              <div class="mega-thumb lit"><img src="${f.img}" alt="${f.name}" loading="lazy"></div>
+              <span class="mega-label">${f.name}</span><span class="mega-sub">${f.family}</span>
+            </a>`).join('')}
+        </div>
+      </section>`;
+
+    document.getElementById('pdp-extra').innerHTML = extra;
+
+    /* SEO: Product structured data */
+    (function () {
+      const ld = document.createElement('script');
+      ld.type = 'application/ld+json';
+      ld.textContent = JSON.stringify({
+        '@context': 'https://schema.org', '@type': 'Product',
+        name: p.name + (p.cat !== 'Fragrance' ? ' ' + p.cat : ' Eau de Parfum'),
+        category: p.cat, description: p.desc,
+        brand: { '@type': 'Brand', name: 'KAXNiOR' },
+        image: p.img ? location.origin + p.img : undefined,
+      });
+      document.head.appendChild(ld);
+    })();
+
+    // reveals for injected extras
+    document.querySelectorAll('#pdp-extra .reveal').forEach((el) => {
+      new IntersectionObserver((es, o) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); o.unobserve(e.target); } }), { threshold: 0.12 }).observe(el);
+    });
+  </script>
+</body>
+</html>

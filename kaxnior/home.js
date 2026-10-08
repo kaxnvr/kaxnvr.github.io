@@ -9,7 +9,7 @@
      Camera math: interpolate {cx, cy, w} and derive the transform — never lerp
      scale/translate directly (the bottle would dip and rise on an arc). */
   (() => {
-    const ASSET  = '/kaxnior-fragrance/assets/stone-intro/';
+    const ASSET  = '/kaxnior/assets/stone-intro/';
     const FRAMES = 145;                 // 0 = back … 144 = front (the resting stone)
 
     const heroSection = document.getElementById('hero');
@@ -89,7 +89,7 @@
       const tx = stripGeo.width / 2 - stripGeo.centers[cur];
       setTrack(tx, smooth);
       titleEl.textContent = it.label;
-      shopEl.href = '/kaxnior-fragrance/scent.html?cat=' + encodeURIComponent(it.label);
+      shopEl.href = '/kaxnior/scent.html?cat=' + encodeURIComponent(it.label);
     }
     // open with panel 2 (Fragrance) centred — this is ALSO the rest layout the
     // intro camera zooms into, so it must be asserted before the first update.
@@ -183,7 +183,7 @@
       const nearestIdx = setTrack(dragStartTx + dragX - dragStartX, false);
       if (items[nearestIdx].label !== titleEl.textContent) {
         titleEl.textContent = items[nearestIdx].label;
-        shopEl.href = '/kaxnior-fragrance/scent.html?cat=' + encodeURIComponent(items[nearestIdx].label);
+        shopEl.href = '/kaxnior/scent.html?cat=' + encodeURIComponent(items[nearestIdx].label);
       }
     }
     function onMove(e) {

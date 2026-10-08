@@ -26,7 +26,7 @@
       name: 'KAXNiOR',
       slogan: 'Scent, sealed in stone.',
       description: 'A sensory fragrance house. Scent shaped by nature, sealed in stone — four eaux de parfum, each crowned by a unique raw-stone stopper.',
-      logo: '/kaxnior-fragrance/logo-dark.avif',
+      logo: '/kaxnior/logo-dark.avif',
     });
     document.head.appendChild(ld);
   })();
@@ -54,7 +54,7 @@
     } else {
       thumb = `<div class="mega-thumb ph"><div class="ph-icon">+</div><span class="ph-label">Visual Pending</span></div>`;
     }
-    return `<a class="mega-card" href="/kaxnior-fragrance/product.html?id=${id}">${thumb}`
+    return `<a class="mega-card" href="/kaxnior/product.html?id=${id}">${thumb}`
       + `<span class="mega-label">${p.name}</span><span class="mega-sub">${cardSub(id)}</span></a>`;
   }
 
@@ -68,16 +68,16 @@
   }
 
   const secondary = [
-    { label: 'Journal', href: '/kaxnior-fragrance/journal.html', key: 'journal' },
-    { label: 'About', href: '/kaxnior-fragrance/about.html', key: 'about' },
-    { label: 'Store', href: '/kaxnior-fragrance/store.html', key: 'store' },
+    { label: 'Journal', href: '/kaxnior/journal.html', key: 'journal' },
+    { label: 'About', href: '/kaxnior/about.html', key: 'about' },
+    { label: 'Store', href: '/kaxnior/store.html', key: 'store' },
   ];
 
   // Per-category "by scent" library link (surfaced inside the shop, not the top nav)
-  const scentHref = (label) => `/kaxnior-fragrance/scent.html?cat=${encodeURIComponent(label)}`;
+  const scentHref = (label) => `/kaxnior/scent.html?cat=${encodeURIComponent(label)}`;
 
   const navInner = `
-    <a href="/kaxnior-fragrance/index.html" class="nav-logo"><img src="/kaxnior-fragrance/logo-dark.avif" alt="KAXNiOR"></a>
+    <a href="/kaxnior/index.html" class="nav-logo"><img src="/kaxnior/logo-dark.avif" alt="KAXNiOR"></a>
     <ul class="nav-menu">
       ${CATEGORIES.map(megaItem).join('')}
       <li class="nav-spacer"></li>
@@ -114,7 +114,7 @@
         <div class="md-group">
           <button class="md-cat" data-acc="${i}" aria-expanded="false">${cat.label}<span class="md-plus">+</span></button>
           <div class="md-panel" id="md-panel-${i}">
-            ${cat.ids.filter((id) => id !== '|').map((id) => `<a href="/kaxnior-fragrance/product.html?id=${id}">${PRODUCTS[id].name}<em>${cardSub(id)}</em></a>`).join('')}
+            ${cat.ids.filter((id) => id !== '|').map((id) => `<a href="/kaxnior/product.html?id=${id}">${PRODUCTS[id].name}<em>${cardSub(id)}</em></a>`).join('')}
             <a class="md-more" href="${scentHref(cat.label)}">Explore by scent →</a>
           </div>
         </div>`).join('')}
@@ -137,16 +137,16 @@
   const footerInner = `
     <div class="footer-top">
       <div class="footer-logo">
-        <img src="/kaxnior-fragrance/logo-dark.avif" alt="KAXNiOR">
+        <img src="/kaxnior/logo-dark.avif" alt="KAXNiOR">
         <p class="footer-tag">A sensory fragrance house. Scent shaped by nature, sealed in stone.</p>
       </div>
       <div class="footer-col"><h4>Shop</h4><ul>
-        ${CATEGORIES.map((c) => `<li><a href="/kaxnior-fragrance/scent.html?cat=${encodeURIComponent(c.label)}">${c.label}</a></li>`).join('')}
+        ${CATEGORIES.map((c) => `<li><a href="/kaxnior/scent.html?cat=${encodeURIComponent(c.label)}">${c.label}</a></li>`).join('')}
       </ul></div>
       <div class="footer-col"><h4>House</h4><ul>
-        <li><a href="/kaxnior-fragrance/about.html">About</a></li>
-        <li><a href="/kaxnior-fragrance/journal.html">Journal</a></li>
-        <li><a href="/kaxnior-fragrance/store.html">Stores</a></li>
+        <li><a href="/kaxnior/about.html">About</a></li>
+        <li><a href="/kaxnior/journal.html">Journal</a></li>
+        <li><a href="/kaxnior/store.html">Stores</a></li>
       </ul></div>
       <div class="footer-col"><h4>Connect</h4><ul>
         <li><a href="https://www.instagram.com/kaxnior/?utm_source=ig_web_button_share_sheet" target="_blank" rel="noopener">Instagram</a></li>

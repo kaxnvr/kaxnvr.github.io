@@ -3,103 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>KAXNiOR — The House</title>
-  <meta name="description" content="KAXNiOR is a sensory fragrance house built on a single idea: scent shaped by nature and sealed in stone. Every bottle is crowned by a unique raw-stone stopper — no two alike.">
-  <link rel="icon" type="image/svg+xml" href="/kaxnior-fragrance/favicon.svg">
-  <meta property="og:title" content="KAXNiOR — The House">
-  <meta property="og:description" content="Scent shaped by nature, sealed in stone.">
-  <meta property="og:image" content="https://kaxnvr.github.io/kaxnior-fragrance/img/og.jpg?v=2">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500&family=Playfair+Display:ital,wght@0,400;1,300&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/kaxnior-fragrance/style.css?v=104">
+  <title>KAXNiOR — Moved</title>
+  <link rel="canonical" href="https://kaxnvr.github.io/kaxnior/about.html">
+  <meta http-equiv="refresh" content="0; url=/kaxnior/about.html">
+  <script>location.replace("/kaxnior/about.html" + location.search + location.hash);</script>
 </head>
-<body data-page="about">
-  <div class="grain"></div>
-
-  <nav id="site-nav" class="solid" data-nav="solid"></nav>
-
-  <main class="page">
-
-    <!-- INTRO -->
-    <section class="page-intro wrap">
-      <p class="eyebrow reveal">The House</p>
-      <h1 class="display display-xl about-manifesto reveal" data-d="1">A fragrance house, sealed in stone.</h1>
-      <p class="lede reveal" data-d="2">KAXNiOR is a sensory house where scent is treated as material — quarried, refined, and set. We build each fragrance the way one cuts a stone: slowly, around a single nature.</p>
-    </section>
-
-    <!-- PHILOSOPHY -->
-    <section class="section wrap">
-      <div class="about-cols">
-        <div class="about-col reveal">
-          <p class="num">01</p>
-          <h3>Shaped by nature</h3>
-          <p class="body-text">Every accord begins with a single raw material held at its peak — citrus pressed at ripeness, moss drawn from wet earth. Nature sets the direction; we only refine.</p>
-        </div>
-        <div class="about-col reveal" data-d="1">
-          <p class="num">02</p>
-          <h3>Sealed in stone</h3>
-          <p class="body-text">Each bottle is closed by a hand-selected raw stone. No two are identical — the stopper is the fingerprint of the object, a piece of mineral that will never repeat.</p>
-        </div>
-        <div class="about-col reveal" data-d="2">
-          <p class="num">03</p>
-          <h3>Worn as silence</h3>
-          <p class="body-text">Our palette is deliberately quiet: white, grey, the matte of unpolished mineral. The scent should be the only loud thing. Everything around it stays still.</p>
-        </div>
-      </div>
-    </section>
-
-    <!-- SIGNATURE STONES -->
-    <section class="section band">
-      <div class="wrap">
-        <div class="center reveal" style="margin-bottom:60px;">
-          <p class="eyebrow" style="margin-bottom:22px;">The Signature</p>
-          <h2 class="display display-l" style="max-width:16ch;margin:0 auto;">One stone, one scent. No two alike.</h2>
-          <p class="lede" style="max-width:52ch;margin:26px auto 0;">The raw-stone stopper is the heart of KAXNiOR. Each fragrance is crowned by a different mineral, chosen to echo what is inside the glass.</p>
-        </div>
-        <div class="stones" id="stones-grid"></div>
-      </div>
-    </section>
-
-    <!-- MATERIAL / APPROACH -->
-    <section class="band-split">
-      <div class="bs-text reveal">
-        <p class="eyebrow">The Material</p>
-        <h2 class="display display-l">Quiet objects for a loud sense.</h2>
-        <p class="body-text" style="max-width:42ch;">Glass is left clear. Labels are set in the smallest legible type. The only ornament is the stone itself — irregular, matte, unrepeatable. We design the object to disappear so the scent can appear.</p>
-        <a class="btn-line" href="/kaxnior-fragrance/scent.html">Explore by scent</a>
-      </div>
-      <div class="bs-vis bs-vis-photo reveal" data-d="1" style="aspect-ratio:2256/1685;">
-        <img src="/kaxnior-fragrance/img/thumb/atelier-material.avif" alt="Atelier material study">
-      </div>
-    </section>
-
-    <!-- CTA -->
-    <section class="section center wrap">
-      <p class="eyebrow reveal" style="margin-bottom:24px;">The Collection</p>
-      <h2 class="display display-l reveal" data-d="1" style="max-width:18ch;margin:0 auto 40px;">Four eaux de parfum, each sealed by its own stone.</h2>
-      <a class="btn-solid reveal" data-d="2" href="/kaxnior-fragrance/product.html?id=dusk-isle">Discover the Fragrances</a>
-    </section>
-
-  </main>
-
-  <footer id="site-footer"></footer>
-
-  <script src="/kaxnior-fragrance/data.js?v=36"></script>
-  <script src="/kaxnior-fragrance/site.js?v=41"></script>
-  <script>
-    // Signature stones grid, built from the fragrance data
-    document.getElementById('stones-grid').innerHTML = FRAGRANCES.map((f, i) => `
-      <div class="stone-card reveal" data-d="${i % 4}">
-        <a class="stone-frame" href="/kaxnior-fragrance/product.html?id=${f.id}"><img src="${f.gallery && f.gallery[1] ? f.gallery[1] : f.img}" alt="${f.name} — ${f.stone}" loading="lazy"></a>
-        <div class="stone-text">
-          <span class="stone-name">${f.stone}</span>
-          <span class="stone-meta">${f.name} · No. ${f.no}</span>
-        </div>
-      </div>`).join('');
-    // re-run reveals for the just-injected cards
-    document.querySelectorAll('#stones-grid .reveal').forEach((el) => {
-      new IntersectionObserver((es, o) => es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('in'); o.unobserve(e.target); } }), { threshold: 0.12 }).observe(el);
-    });
-  </script>
-</body>
+<body><p>This page has moved to <a href="/kaxnior/about.html">KAXNiOR</a>.</p></body>
 </html>

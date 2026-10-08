@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>KAXNiOR — A Sensory Fragrance House</title>
+  <meta name="description" content="KAXNiOR is a sensory fragrance house. Scent shaped by nature, sealed in stone — four eaux de parfum, each crowned by a unique raw-stone stopper.">
+  <link rel="icon" type="image/svg+xml" href="/kaxnior/favicon.svg">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="KAXNiOR — A Sensory Fragrance House">
+  <meta property="og:description" content="Scent, sealed in stone. Four eaux de parfum, each crowned by a unique raw-stone stopper.">
+  <meta property="og:image" content="https://kaxnvr.github.io/kaxnior/img/og.jpg?v=2">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500&family=Playfair+Display:ital,wght@0,400;1,300&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="/kaxnior/style.css?v=104">
+</head>
+<body data-page="home">
+  <div class="grain"></div>
+
+  <nav id="site-nav"></nav>
+
+  <!-- HERO — ONE continuous page built on the six-panel avif strip (the old
+       showcase, verbatim: same panel sizes, same card, same arrow/drag). The
+       strip is treated as ONE grouped photo. #hero is a 350vh scroll driver;
+       #hero-stage is the sticky 100vh viewport; #hero-cam is the camera: during
+       the intro it is zoomed tight into panel 2's bottle (stoneless main-2.avif,
+       the 145-frame stone rotation drawn on a canvas riding INSIDE that panel),
+       then dollies out to identity — which IS the strip's resting presentation.
+       After landing, the old strip behaviour takes over untouched. -->
+  <section id="hero">
+    <div id="hero-stage">
+      <div id="hero-cam">
+        <div id="hero-shelf">
+          <div class="showcase-track" id="showcase-track">
+            <div class="sc-panel"><img src="/kaxnior/img/main-1.avif?v=41" alt="" draggable="false" decoding="async"></div>
+            <div class="sc-panel">
+              <img fetchpriority="high" src="/kaxnior/img/main-2.avif?v=41" alt="KAXNiOR Fragrance" draggable="false" decoding="async">
+              <canvas id="hero-stone" width="692" height="624" aria-hidden="true"></canvas>
+            </div>
+            <div class="sc-panel"><img src="/kaxnior/img/main-3.avif?v=41" alt="KAXNiOR Lip Balm" draggable="false" decoding="async"></div>
+            <div class="sc-panel"><img src="/kaxnior/img/main-4.avif?v=41" alt="KAXNiOR Home Fragrance" draggable="false" decoding="async"></div>
+            <div class="sc-panel"><img src="/kaxnior/img/main-5.avif?v=41" alt="KAXNiOR Hand Cream" draggable="false" decoding="async"></div>
+            <div class="sc-panel"><img src="/kaxnior/img/main-6.avif?v=41" alt="" draggable="false" decoding="async"></div>
+          </div>
+        </div>
+      </div>
+      <!-- frosted glass over Act-1: covers the full viewport at p=0, lifts away
+           with the stone rotation (gone exactly at SCRUB_END), 45vh feathered
+           bottom edge so the reveal never reads as a hard split -->
+      <div id="hero-frost" aria-hidden="true"></div>
+      <!-- opening title card: sits crisp on top of the frosted glass at p=0,
+           dismisses on the FIRST small bit of scroll (gone by 10% — well before
+           the stone rotation or the frost itself finish) so it never fights the
+           reveal underneath it -->
+      <div id="hero-intro">
+        <!-- inner wrapper: carries the pointer-parallax transform so it never
+             fights the scroll-dismiss transform on the container -->
+        <div class="hero-intro-inner">
+          <span class="hero-intro-label">A Sensory Fragrance House</span>
+          <h1 class="hero-intro-title">Scent, Sealed in Stone</h1>
+          <div class="hero-intro-actions">
+            <a href="/kaxnior/scent.html">Discover</a>
+            <a href="/kaxnior/journal.html">View Campaign</a>
+          </div>
+        </div>
+      </div>
+      <div class="hero-loading" id="hero-loading" hidden>
+        <span id="hero-loading-label" role="status">Preparing the stone</span>
+        <progress id="hero-loading-progress" max="19" value="0" aria-label="Stone frames ready"></progress>
+        <button id="hero-loading-skip" type="button">Explore now</button>
+      </div>
+      <!-- scroll cue: bottom-right corner, vertical (the old centred cue read
+           as misaligned against the leaning stone); clickable — plays the intro -->
+      <button class="hero-scroll-wrap" id="hero-scroll-cue" aria-label="Scroll to explore">
+        <span class="hs-label">Scroll</span>
+        <span class="hero-scroll"></span>
+      </button>
+      <!-- The old showcase card — fades in at CARD_ON, as the dolly settles -->
+      <div class="sc-card" id="hero-card">
+        <div class="sc-card-text">
+          <span class="sc-title" id="sc-title">Fragrance</span>
+          <a class="sc-shop" id="sc-shop" href="/kaxnior/scent.html?cat=Fragrance">Shop</a>
+        </div>
+        <button class="sc-next" id="sc-next" aria-label="Next">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="1.2">
+            <line x1="3" y1="12" x2="20" y2="12"></line>
+            <polyline points="14 6 20 12 14 18"></polyline>
+          </svg>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <footer id="site-footer"></footer>
+
+  <script src="/kaxnior/data.js?v=36"></script>
+  <script src="/kaxnior/site.js?v=41"></script>
+  <script src="/kaxnior/stone-frames.js?v=1"></script>
+  <script src="/kaxnior/home.js?v=1"></script>
+</body>
+</html>

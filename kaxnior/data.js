@@ -10,7 +10,7 @@
    To add a real image later: drop the optimized jpg in website/img/, set `img` + `fit`,
    and remove `soon:true`. */
 
-const ASSET = '/kaxnior-fragrance/img/';
+const ASSET = '/kaxnior/img/';
 
 /* The four signature fragrances. Each carries a unique raw-stone stopper — no two alike. */
 const FRAGRANCES = [
