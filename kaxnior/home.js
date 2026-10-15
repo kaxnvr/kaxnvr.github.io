@@ -220,35 +220,89 @@
     const dollyEase = t => t<.5 ? 4*t*t*t : 1-Math.pow(-2*t+2,3)/2; // easeInOutCubic
     const lerp = (a,b,t) => a+(b-a)*t;
 
-    /* ---------- bounded asynchronous frame pipeline ----------
-       No scratch-canvas decoding and no document scroll lock. Keep 19 original
-       keyframes plus the immediate scrub neighbourhood (32 decoded frames max).
-       The status is actual keyframe readiness, not an artificial timed splash. */
-    let ready = reduced, loaderDismissed = false;
+    /* Keep the bounded 4-fetch / 2-decode / 32-frame pipeline. Only commit
+       a complete, decoded composition; failed assets never count as ready. */
+    let ready = false, pendingExplore = false, waitingForBuffer = !reduced, retries = 0;
+    let wantedFrame = reduced ? FRAMES - 1 : 0, displayProgress = reduced ? 1 : 0;
+    let requestedProgress = displayProgress;
     const loader = document.getElementById('hero-loading');
     const loaderLabel = document.getElementById('hero-loading-label');
     const loaderProgress = document.getElementById('hero-loading-progress');
-    let loaderTimer;
+    const retryButton = document.getElementById('hero-loading-retry');
+    const exploreButton = document.getElementById('hero-loading-skip');
+    const backBuffer = document.createElement('canvas');
+    backBuffer.width = cv.width; backBuffer.height = cv.height;
+    const backgrounds = panels.map(panel => ({ image: panel.querySelector('img'), state: 'pending' }));
+    const backgroundsReady = () => backgrounds.every(item => item.state === 'ready');
     const sequence = new KXStoneFrames({
       count: FRAMES, reduced,
       url: i => ASSET + 'stone_webp_v2/stone_' + String(i).padStart(4, '0') + '.webp',
-      onChange() {
-        const status = sequence.status();
-        ready = status.ready > 0 || status.complete;
-        loaderProgress.max = status.total;
-        loaderProgress.value = status.ready;
-        loaderLabel.textContent = status.failed ? 'Motion is taking longer' : 'Preparing the stone';
-        if (status.complete) { clearTimeout(loaderTimer); loader.hidden = true; }
-        onScroll();
-      },
+      onChange: () => onScroll(),
     });
-    loaderTimer = setTimeout(() => {
-      if (!sequence.status().complete && !loaderDismissed) loader.hidden = false;
-    }, 350);
-    document.getElementById('hero-loading-skip').addEventListener('click', () => {
-      loaderDismissed = true;
-      loader.hidden = true;
-      window.scrollTo({ top: (HERO_H - innerHeight) * DOLLY_END, behavior: reduced ? 'auto' : 'smooth' });
+
+    function loadBackground(item, retry = false) {
+      if (item.state === 'ready' || item.state === 'loading') return;
+      item.state = 'loading';
+      const image = item.image;
+      let timer, finished = false;
+      const cleanup = () => {
+        clearTimeout(timer);
+        image.removeEventListener('load', loaded);
+        image.removeEventListener('error', failed);
+      };
+      const finish = state => {
+        if (finished) return;
+        finished = true; cleanup(); item.state = state; onScroll();
+      };
+      const failed = () => finish('failed');
+      const loaded = () => {
+        if (!image.naturalWidth) { failed(); return; }
+        Promise.resolve().then(() => image.decode ? image.decode() : undefined)
+          .then(() => finish('ready'), failed);
+      };
+      image.addEventListener('load', loaded);
+      image.addEventListener('error', failed);
+      timer = setTimeout(failed, 12000);
+      if (retry) {
+        const url = new URL(image.currentSrc || image.src, location.href);
+        url.searchParams.set('kx-retry', String(retries));
+        image.src = url.href;
+      } else if (image.complete) loaded();
+    }
+
+    function updateLoading() {
+      const status = sequence.status();
+      const backgroundCount = backgrounds.filter(item => item.state === 'ready').length;
+      const failed = backgrounds.some(item => item.state === 'failed') || sequence.failed.has(wantedFrame)
+        || (waitingForBuffer && status.bufferFailed > 0);
+      const waiting = !backgroundsReady() || !sequence.get(wantedFrame) || drawn < 0 || pendingExplore || waitingForBuffer;
+      const state = failed ? 'error' : waiting ? (drawn < 0 ? 'loading' : 'waiting') : 'ready';
+      loader.hidden = state === 'ready';
+      retryButton.hidden = !failed;
+      exploreButton.disabled = pendingExplore;
+      exploreButton.textContent = pendingExplore ? 'Preparing collection' : 'Explore now';
+      loaderLabel.textContent = failed ? 'Unable to prepare the stone. Please retry.'
+        : waitingForBuffer && drawn >= 0 ? 'Preparing the rotation' : 'Preparing the stone';
+      loaderProgress.max = status.bufferTotal + backgrounds.length;
+      loaderProgress.value = status.fetched + backgroundCount;
+      stage.dataset.stoneState = state;
+      stage.dataset.stoneRevealed = String(drawn >= 0);
+      cv.dataset.stoneLoading = JSON.stringify({ state, target: wantedFrame, drawn,
+        requestedProgress, displayProgress, targetReady: !!sequence.get(wantedFrame),
+        targetFailed: sequence.failed.has(wantedFrame), backgroundsReady: backgroundCount,
+        backgroundsTotal: backgrounds.length, pendingExplore, waitingForBuffer, retries, ...status });
+    }
+
+    retryButton.addEventListener('click', () => {
+      retries++;
+      sequence.retry();
+      backgrounds.forEach(item => { if (item.state === 'failed') loadBackground(item, true); });
+      onScroll();
+    });
+    exploreButton.addEventListener('click', () => {
+      pendingExplore = true;
+      sequence.setTarget(FRAMES - 1);
+      onScroll();
     });
 
     /* ---------- camera rects (rest-layout stage px) ----------
@@ -304,11 +358,52 @@
 
     function update(){
       const max = Math.max(1, HERO_H - innerHeight);
-      const p = reduced ? 1 : Math.min(1, Math.max(0, scrollY / max));
+      requestedProgress = reduced ? 1 : Math.min(1, Math.max(0, scrollY / max));
+      if (pendingExplore && backgroundsReady() && sequence.get(FRAMES - 1)) {
+        // With no previously displayed frame there is no visible motion to
+        // continue. Land only after the resting composite is actually painted.
+        if (drawn < 0 || !sequence.status().bufferReady) {
+          const resting = sequence.get(FRAMES - 1);
+          if (!KXStoneFrames.present(ctx, backBuffer, resting.image)) {
+            sequence.reject(resting.index); updateLoading(); return;
+          }
+          drawn = resting.index;
+          displayProgress = requestedProgress = DOLLY_END;
+          ready = true;
+          window.scrollTo({ top: max * DOLLY_END, behavior: 'instant' });
+        } else {
+          window.scrollTo({ top: max * DOLLY_END, behavior: reduced ? 'auto' : 'smooth' });
+        }
+        pendingExplore = false;
+      }
+      const first = reduced ? FRAMES - 1 : 0;
+      // Showing the first still image does not require all 145 compressed files.
+      // Rotation does. An explicit Explore can safely land on decoded frame 144;
+      // the subsequent dolly/gallery only uses that frame and remains available.
+      waitingForBuffer = !reduced && !sequence.status().bufferReady
+        && (displayProgress < SCRUB_END || requestedProgress < SCRUB_END);
+      const targetProgress = drawn < 0 ? (reduced ? 1 : 0)
+        : waitingForBuffer ? displayProgress : requestedProgress;
+      wantedFrame = pendingExplore ? FRAMES - 1 : drawn < 0 ? first
+        : Math.round(Math.min(1, targetProgress / SCRUB_END) * (FRAMES - 1));
+      sequence.setTarget(wantedFrame);
+      const frame = sequence.get(wantedFrame);
+      // While Explore prepares the resting frame, keep the current picture.
+      // Otherwise only the exact requested frame can advance the whole scene.
+      if (!pendingExplore && backgroundsReady() && frame) {
+        if (frame.index === drawn || KXStoneFrames.present(ctx, backBuffer, frame.image)) {
+          const firstPaint = drawn < 0;
+          drawn = frame.index;
+          displayProgress = targetProgress;
+          ready = !waitingForBuffer;
+          if (firstPaint && requestedProgress !== displayProgress) onScroll();
+        } else sequence.reject(frame.index);
+      }
+      const p = displayProgress;
+      updateLoading();
 
-      /* only trust p as "where the user is" while the viewport is stable — the
-         readings that race in during a rotate (old scrollY / new max) must not
-         overwrite the progress that relayout() is about to restore */
+      /* Preserve the displayed composition through a viewport change. An
+         unavailable requested frame must not become the resize restore point. */
       if (innerWidth === lastW && innerHeight === lastH) lastP = p;
 
       /* frosted glass rides the rotation: fully covering at p=0, fully lifted
@@ -352,15 +447,6 @@
           scrollWrap.style.pointerEvents = cueOn ? 'auto' : 'none';
           cueState = cueOn;
         }
-      }
-
-      const want = Math.round(Math.min(1, p / SCRUB_END) * (FRAMES - 1));
-      sequence.setTarget(want);
-      const frame = sequence.nearest(want);
-      if (frame && frame.index !== drawn) {
-        ctx.clearRect(0, 0, cv.width, cv.height);
-        ctx.drawImage(frame.image, 0, 0);
-        drawn = frame.index;
       }
 
       const isEnd = reduced || p >= DOLLY_END;
@@ -419,6 +505,7 @@
     addEventListener('pageshow', event => {
       if (event.persisted) { geoSync(); show(cur, false); syncActivity(); update(); }
     });
+    backgrounds.forEach(item => loadBackground(item));
     sequence.start();
     update();
   })();

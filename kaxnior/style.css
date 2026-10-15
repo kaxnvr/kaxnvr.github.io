@@ -1000,14 +1000,16 @@ img, picture, canvas {
   user-drag: none;
 }
 
-/* Real sequence readiness, intentionally non-blocking. The collection, navigation
-   and scrolling stay available on slow/failed connections. */
+/* Hide the unprepared composite, never an uncovered bottle. Navigation remains
+   available; an explicit retry recovers failed assets without a timed reveal. */
+#hero-stage[data-stone-revealed="false"] #hero-cam { visibility: hidden; }
 .hero-loading {
   position: absolute; z-index: 5; left: 5vw; bottom: 5vh;
   display: grid; gap: 9px; width: 156px; color: var(--limestone-2);
   font: 300 9px/1.5 var(--font-sans); letter-spacing: .14em; text-transform: uppercase;
 }
-.hero-loading[hidden] { display: none; }
+.hero-loading[hidden], .hero-loading button[hidden] { display: none; }
+.hero-loading button:disabled { cursor: wait; opacity: .65; }
 .hero-loading progress {
   appearance: none; width: 100%; height: 1px; border: 0;
   background: rgba(80,80,80,.15); color: #777;

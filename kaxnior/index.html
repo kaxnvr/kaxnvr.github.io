@@ -13,7 +13,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500&family=Playfair+Display:ital,wght@0,400;1,300&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="/kaxnior/style.css?v=104">
+  <link rel="stylesheet" href="/kaxnior/style.css?v=105">
 </head>
 <body data-page="home">
   <div class="grain"></div>
@@ -29,7 +29,7 @@
        then dollies out to identity — which IS the strip's resting presentation.
        After landing, the old strip behaviour takes over untouched. -->
   <section id="hero">
-    <div id="hero-stage">
+    <div id="hero-stage" data-stone-state="loading" data-stone-revealed="false">
       <div id="hero-cam">
         <div id="hero-shelf">
           <div class="showcase-track" id="showcase-track">
@@ -65,9 +65,10 @@
           </div>
         </div>
       </div>
-      <div class="hero-loading" id="hero-loading" hidden>
+      <div class="hero-loading" id="hero-loading">
         <span id="hero-loading-label" role="status">Preparing the stone</span>
-        <progress id="hero-loading-progress" max="19" value="0" aria-label="Stone frames ready"></progress>
+        <progress id="hero-loading-progress" max="25" value="0" aria-label="Opening assets ready"></progress>
+        <button id="hero-loading-retry" type="button" hidden>Retry loading</button>
         <button id="hero-loading-skip" type="button">Explore now</button>
       </div>
       <!-- scroll cue: bottom-right corner, vertical (the old centred cue read
@@ -96,7 +97,7 @@
 
   <script src="/kaxnior/data.js?v=36"></script>
   <script src="/kaxnior/site.js?v=41"></script>
-  <script src="/kaxnior/stone-frames.js?v=1"></script>
-  <script src="/kaxnior/home.js?v=1"></script>
+  <script src="/kaxnior/stone-frames.js?v=3"></script>
+  <script src="/kaxnior/home.js?v=3"></script>
 </body>
 </html>
