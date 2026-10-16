@@ -50,7 +50,7 @@
     if (p && p.img) {
       const cls = p.fit === 'cover' ? 'cover' : 'lit';
       const bg = MEGA_THUMB_BG[id] ? ` ${MEGA_THUMB_BG[id]}` : '';
-      thumb = `<div class="mega-thumb ${cls}${bg}"><img data-src="${thumbSrc(p.img)}" alt="${p.name}" decoding="async"></div>`;
+      thumb = `<div class="mega-thumb ${cls}${bg}"><img data-src="${thumbSrc(p.img)}" data-fallback="${p.img}" alt="${p.name}" decoding="async"></div>`;
     } else {
       thumb = `<div class="mega-thumb ph"><div class="ph-icon">+</div><span class="ph-label">Visual Pending</span></div>`;
     }
@@ -170,15 +170,39 @@
     onScroll();
   }
 
+  // Keep failed photos eligible for another menu entry. A failed thumbnail gets
+  // one attempt at the same product's original photo, never another product.
+  const loadingMegaImages = new WeakSet();
+  function loadMegaImage(img) {
+    if (loadingMegaImages.has(img)) return;
+    loadingMegaImages.add(img);
+    let triedOriginal = false;
+    const finish = () => {
+      loadingMegaImages.delete(img);
+      img.onload = img.onerror = null;
+    };
+    img.onload = () => {
+      delete img.dataset.src;
+      delete img.dataset.fallback;
+      finish();
+    };
+    img.onerror = () => {
+      if (!triedOriginal && img.dataset.fallback) {
+        triedOriginal = true;
+        img.src = img.dataset.fallback;
+      } else {
+        finish();
+      }
+    };
+    img.src = img.dataset.src;
+  }
+
   // Mega-menu: JS hover with grace period so the cursor can slide nav → cards.
   document.querySelectorAll('.has-menu').forEach((li) => {
     let t;
     const open = () => {
       clearTimeout(t);
-      li.querySelectorAll('img[data-src]').forEach(img => {
-        img.src = img.dataset.src;
-        delete img.dataset.src;
-      });
+      li.querySelectorAll('img[data-src]').forEach(loadMegaImage);
       li.classList.add('is-open');
     };
     li.addEventListener('mouseenter', open);
